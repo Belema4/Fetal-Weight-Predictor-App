@@ -5,53 +5,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
           python-version: "3.9"
-
-      - name: Create project files
+          
+      - name: Install system dependencies
         run: |
-          # Create main.py
-          echo 'from kivy.app import App
-          from kivy.uix.label import Label
-
-          class FetalWeightApp(App):
-              def build(self):
-                  return Label(text="Fetal Weight Predictor")
-
-          if __name__ == "__main__":
-              FetalWeightApp().run()' > main.py
-
-          # Create requirements.txt
-          echo "kivy>=2.0.0" > requirements.txt
-
-          # Create buildozer.spec
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            unzip \
+            openjdk-17-jdk \
+            zlib1g-dev \
+            libncurses5-dev
+          
+      - name: Install Buildozer
+        run: pip install buildozer
+          
+      - name: Create buildozer.spec
+        run: |
           echo '[app]
           title = Fetal Weight Predictor
           package.name = fetalweight
           package.domain = org.medical
           source.dir = .
-          requirements = python3,kivy
-          android.permissions = INTERNET
+          requirements = python3, kivy==2.1.0
+          android.ndk_path = $HOME/.buildozer/android/platform/android-ndk-r23b
+          android.sdk_path = $HOME/.buildozer/android/platform/android-sdk
+          android.arch = armeabi-v7a
           android.api = 30
-          android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk
-          android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r23b' > buildozer.spec
-
-      - name: Install Buildozer
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git unzip openjdk-17-jdk
-          pip install buildozer
-
+          android.minapi = 21
+          android.gradle_dependencies = '\''com.android.tools.build:gradle:7.0.0'\''
+          android.permissions = INTERNET
+          log_level = 2
+          warn_on_root = 1' > buildozer.spec
+          
       - name: Build APK
         run: |
-          buildozer init
+          buildozer -v android clean
           buildozer -v android debug
-
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
