@@ -1,0 +1,22 @@
+name: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Buildozer
+        run: pip install buildozer
+      - name: Build APK
+        run: |
+          buildozer init
+          buildozer -v android debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: fetal-weight-predictor.apk
+          path: bin/*.apk
