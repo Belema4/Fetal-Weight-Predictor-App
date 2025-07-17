@@ -6,18 +6,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      
+      - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"  # Kivy works best with 3.8 or 3.9
+          python-version: "3.9"
+          
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            unzip \
+            openjdk-17-jdk \
+            zlib1g-dev \
+            libncurses5-dev
+          
       - name: Install Buildozer
         run: pip install buildozer
+          
+      - name: Create buildozer.spec
+        run: |
+          echo '[app]
+          title = Fetal Weight Predictor
+          package.name = fetalweight
+          package.domain = org.medical
+          source.dir = .
+          requirements = python3, kivy==2.1.0
+          android.ndk_path = $HOME/.buildozer/android/platform/android-ndk-r23b
+          android.sdk_path = $HOME/.buildozer/android/platform/android-sdk
+          android.arch = armeabi-v7a
+          android.api = 30
+          android.minapi = 21
+          android.gradle_dependencies = '\''com.android.tools.build:gradle:7.0.0'\''
+          android.permissions = INTERNET
+          log_level = 2
+          warn_on_root = 1' > buildozer.spec
+          
       - name: Build APK
         run: |
-          buildozer init
+          buildozer -v android clean
           buildozer -v android debug
+          
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Updated from v3 to v4
         with:
           name: fetal-weight-predictor.apk
           path: bin/*.apk
