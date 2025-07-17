@@ -1,19 +1,22 @@
 [app]
-# (str) Title of your application
+# Basic app info
 title = Fetal Weight Predictor
-
-# (str) Package name
 package.name = fetalweight
-
-# (str) Package domain (used for the Java package name)
 package.domain = org.medical
-
-# (str) Source code where main.py is located
 source.dir = .
+version = 0.1
 
-# (list) Application requirements
-# Make sure there's no `python3` here — it's implicit.
-requirements = kivy
-
-# (list) Permissions
+# Requirements
+requirements = python3, kivy==2.1.0, android
 android.permissions = INTERNET
+
+# Android build settings
+android.api = 30  # Targets Android 11
+android.minapi = 21
+android.sdk = 30
+android.ndk = 23b
+android.arch = armeabi-v7a  # Most compatible architecture
+
+# Buildozer optimization
+log_level = 2
+warn_on_root = 1
