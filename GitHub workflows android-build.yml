@@ -1,0 +1,68 @@
+name: Android APK Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: "1.0.${{ github.run_number }}"
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: ⚙️ Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            python3-pip \
+            libffi-dev \
+            libssl-dev \
+            libncurses5 \
+            libncurses5-dev \
+            libsqlite3-dev \
+            libjpeg-dev \
+            zlib1g-dev \
+            libfreetype6-dev \
+            liblcms2-dev \
+            libgl1-mesa-dev \
+            libgstreamer1.0 \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good
+
+      - name: 🧪 Install Python dependencies (Buildozer, Cython, Kivy, KivyMD)
+        run: |
+          pip install --upgrade pip
+          pip install cython buildozer kivy
+          pip install kivymd || true  # optional KivyMD support
+
+      - name: 🛠️ Set Buildozer Version
+        run: |
+          echo "app.version.code = $VERSION_CODE" >> buildozer.spec
+          echo "app.version = $VERSION_NAME" >> buildozer.spec
+
+      - name: 📦 Build APK
+        run: |
+          buildozer android debug
+
+      - name: ⬆️ Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetalweight-apk
+          path: bin/*.apk
